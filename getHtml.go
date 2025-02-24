@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 const BAD_RESPONSE = "got a bad response"
@@ -19,7 +20,7 @@ func GetHtml(rawURL string) (string, error) {
 		return "", fmt.Errorf("%s: %d", BAD_RESPONSE, resp.StatusCode)
 	}
 
-	if contentType := resp.Header.Get("content-type"); contentType != "text/html" {
+	if contentType := resp.Header.Get("content-type"); !strings.Contains(contentType, "text/html") {
 		return "", fmt.Errorf("%s: %s", BAD_CONTENT_TYPE, contentType)
 	}
 

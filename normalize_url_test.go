@@ -34,7 +34,7 @@ func TestNormalizeURL(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, err := normalizeURL(tc.inputURL)
+			actual, err := NormalizeURL(tc.inputURL)
 			if err != nil && tc.expectedErr == nil {
 				t.Fatalf("Test %d - %s FAIL: expected error: %v, actual error: %v", i, tc.name, tc.expectedErr, err)
 			} else if actual != tc.expected {

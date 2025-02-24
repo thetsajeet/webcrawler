@@ -17,17 +17,21 @@ func GetURLsFromHTML(htmlBody, rawBaseURL string) ([]string, error) {
 
 	urls := []string{}
 
+	baseUrl, err := url.Parse(rawBaseURL)
+	if err != nil {
+		return []string{}, err
+	}
+
 	for n := range rootNode.Descendants() {
 		if n.Type == html.ElementNode && n.DataAtom == atom.A {
 			for _, attr := range n.Attr {
 				if attr.Key == "href" {
-					if parsedUrl, err := url.Parse(attr.Val); err != nil {
+					parsedUrl, err := url.Parse(attr.Val)
+					if err != nil {
 						return []string{}, err
-					} else if parsedUrl.IsAbs() {
-						urls = append(urls, parsedUrl.String())
-					} else {
-						urls = append(urls, rawBaseURL+parsedUrl.String())
 					}
+
+					urls = append(urls, baseUrl.ResolveReference(parsedUrl).String())
 				}
 			}
 		}
