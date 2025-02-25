@@ -6,12 +6,12 @@ import (
 	"net/url"
 )
 
-func CrawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
-	parsedBaseURL, err := url.Parse(rawBaseURL)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+func (cfg *config) CrawlPage(rawCurrentURL string) {
+	cfg.concurrencyControl <- struct{}{}
+	defer func() {
+		<-cfg.concurrencyControl
+		defer cfg.wg.Done()
+	}()
 
 	parsedCurrentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {
@@ -19,7 +19,7 @@ func CrawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 		return
 	}
 
-	if parsedBaseURL.Host != parsedCurrentURL.Host {
+	if cfg.baseURL.Host != parsedCurrentURL.Host {
 		return
 	}
 
@@ -29,12 +29,9 @@ func CrawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 		return
 	}
 
-	if _, exists := pages[nURL]; exists {
-		pages[nURL] += 1
+	if isFirst := cfg.addPageVisit(nURL); !isFirst {
 		return
 	}
-
-	pages[nURL] = 1
 
 	log.Default().Printf("Crawling %s\n", rawCurrentURL)
 
@@ -44,13 +41,15 @@ func CrawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 		return
 	}
 
-	urls, err := GetURLsFromHTML(htmlContent, rawBaseURL)
+	urls, err := GetURLsFromHTML(htmlContent, cfg.baseURL.String())
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	for _, rawURL := range urls {
-		CrawlPage(rawBaseURL, rawURL, pages)
+		cfg.wg.Add(1)
+		go cfg.CrawlPage(rawURL)
 	}
+
 }
