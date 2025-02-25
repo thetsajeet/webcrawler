@@ -27,9 +27,7 @@ func main() {
 	cfg.wg.Wait()
 	end := time.Now()
 
-	for k, v := range cfg.pages {
-		fmt.Printf("%s: %d\n", k, v)
-	}
+	printReport(cfg.pages, crawlArgs.baseURL)
 
 	fmt.Printf("Took %v in total\n", end.Sub(now))
 }
