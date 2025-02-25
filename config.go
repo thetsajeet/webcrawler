@@ -11,6 +11,7 @@ type config struct {
 	mu                 *sync.Mutex
 	concurrencyControl chan struct{}
 	wg                 *sync.WaitGroup
+	maxPages           int
 }
 
 func (cfg *config) addPageVisit(nURL string) (isFirst bool) {
@@ -26,7 +27,7 @@ func (cfg *config) addPageVisit(nURL string) (isFirst bool) {
 	return true
 }
 
-func createConfig(rawBaseUrl string, maxConcurrency int) (*config, error) {
+func createConfig(rawBaseUrl string, maxConcurrency, maxPages int) (*config, error) {
 	baseURL, err := url.Parse(rawBaseUrl)
 	if err != nil {
 		return nil, err
@@ -38,5 +39,13 @@ func createConfig(rawBaseUrl string, maxConcurrency int) (*config, error) {
 		concurrencyControl: make(chan struct{}, maxConcurrency),
 		wg:                 &sync.WaitGroup{},
 		mu:                 &sync.Mutex{},
+		maxPages:           maxPages,
 	}, nil
+}
+
+func (cfg *config) hasReachedLimit() bool {
+	cfg.mu.Lock()
+	defer cfg.mu.Unlock()
+
+	return len(cfg.pages) >= cfg.maxPages
 }
