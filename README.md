@@ -17,9 +17,16 @@ go install
 
 ```sh
 # build
-go build main.go -o ./webcrawler && ./crawler
+go build main.go -o ./webcrawler && ./crawler <website> <concurrency> <max_pages>
 # development
-go run main.go
+go run main.go <website> <concurrency> <max_pages>
+```
+
+## Run with Docker
+
+```sh
+docker build . -t name:version
+docker run -e F=site -e S=concurrency -e T=max_pages name:version
 ```
 
 ## Testing
